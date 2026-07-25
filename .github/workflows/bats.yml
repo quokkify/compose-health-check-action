@@ -42,7 +42,7 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Setup jq
-        uses: dcarbone/install-jq-action@v3
+        uses: dcarbone/install-jq-action@v4
 
       - name: Setup Bats and bats libs
         id: setup-bats
