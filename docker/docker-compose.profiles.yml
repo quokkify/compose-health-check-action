@@ -1,6 +1,6 @@
 services:
   web:
-    image: busybox:1.37
+    image: busybox:1.38
     stop_grace_period: 1s
     command: >
       sh -c "
@@ -16,7 +16,7 @@ services:
       start_period: 0s
 
   worker:
-    image: busybox:1.37
+    image: busybox:1.38
     stop_grace_period: 1s
     profiles: ["default"]
     command: >
@@ -33,7 +33,7 @@ services:
       start_period: 0s
 
   sidecar:
-    image: busybox:1.37
+    image: busybox:1.38
     stop_grace_period: 1s
     profiles: ["extra"]
     command: >
