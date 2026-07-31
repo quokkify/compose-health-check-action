@@ -81,3 +81,17 @@
   ! grep -F 'foreign' "$marker" >/dev/null
   rm -f "$marker"
 }
+
+@test "empty compose lookup preserves ordered exact-project fallback" {
+  fake_compose() {
+    [[ "${1:-}" == "ps" ]] && return 0
+    return 1
+  }
+  source "$BATS_TEST_DIRNAME/../../entrypoint.sh"
+  DOCKER_HEALTH_PROJECT_NAME_INPUT="input-project"
+  COMPOSE_PROJECT_NAME="ambient-project"
+
+  run resolve_project_name fake_compose
+  [ "$status" -eq 0 ]
+  [ "$output" = "input-project" ]
+}

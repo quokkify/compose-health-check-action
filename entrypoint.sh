@@ -176,6 +176,11 @@ get_compose_project_name() {
     fi
     echo "$project_label"
   fi
+
+  # No containers is a valid pre-start/zero-scale state. Return an empty
+  # project name successfully so resolve_project_name can apply its ordered,
+  # exact-project fallbacks instead of skipping them.
+  return 0
 }
 
 apply_explicit_project_name_input() {
