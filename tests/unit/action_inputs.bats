@@ -14,13 +14,14 @@
   done
 }
 
-@test "payload metacharacters remain data in shell variables" {
-  payload='$(touch /tmp/compose-health-check-action-payload) `touch /tmp/compose-health-check-action-backtick` "quoted"'
+@test "build command transports shell metacharacters as data" {
   marker="$(mktemp)"
-  run bash -c 'value="$1"; printf "%s" "$value" > "$2"' _ "$payload" "$marker"
-  [ "$status" -eq 0 ]
-  [ "$(cat "$marker")" = "$payload" ]
-  [ ! -e /tmp/compose-health-check-action-payload ]
-  [ ! -e /tmp/compose-health-check-action-backtick ]
   rm -f "$marker"
+  payload="$(printf 'docker compose --project-name \"$(touch %s)\" up -d \"web`touch %s`\" \"quote \\\" newline\nservice\"' "$marker" "$marker")"
+  run bash -c 'mapfile -d "" -t cmd < <(DOCKER_COMMAND_INPUT="$1" bash "$2"); printf "%s\\n" "${cmd[@]}"' _ "$payload" "$BATS_TEST_DIRNAME/../../lib/build-compose-command.sh"
+  [ "$status" -eq 0 ]
+  [[ "$output" == *'$(touch '* ]]
+  [[ "$output" == *'`touch '* ]]
+  [[ "$output" == *$'newline\nservice'* ]]
+  [ ! -e "$marker" ]
 }

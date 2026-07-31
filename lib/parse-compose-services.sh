@@ -28,11 +28,11 @@ collect_compose_services_from_up() {
     # These up options consume the following token. Keep this list explicit
     # so option operands (notably --scale's SERVICE=NUM) cannot become targets.
     case "$token" in
-      --scale|--profile|-p|--project-name|--pull|--timeout|--wait-timeout|--exit-code-from|--attach|--stop-timeout)
+      --scale|--profile|-p|--project-name|--pull|--timeout|--wait-timeout|--exit-code-from|--attach|--no-attach|--stop-timeout)
         ((i + 1 < ${#cmd_args[@]})) && ((i++))
         continue
         ;;
-      --scale=*|--profile=*|--project-name=*|--pull=*|--timeout=*|--wait-timeout=*|--exit-code-from=*|--attach=*|--stop-timeout=*)
+      --scale=*|--profile=*|--project-name=*|--pull=*|--timeout=*|--wait-timeout=*|--exit-code-from=*|--attach=*|--no-attach=*|--stop-timeout=*)
         continue
         ;;
     esac

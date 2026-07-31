@@ -10,6 +10,8 @@ DOCKER_HEALTH_LOG_LINES="${DOCKER_HEALTH_LOG_LINES:-25}"
 DOCKER_HEALTH_PROJECT_NAME_INPUT="${DOCKER_HEALTH_PROJECT_NAME_INPUT:-}"
 DOCKER_HEALTH_AUTO_APPLY_PROJECT_NAME="${DOCKER_HEALTH_AUTO_APPLY_PROJECT_NAME:-}"
 DOCKER_HEALTH_PROJECT_ENV_FILE="${DOCKER_HEALTH_PROJECT_ENV_FILE:-system.env}"
+# Diagnostics are fail-closed until Compose resolves an exact project name.
+DOCKER_HEALTH_PROJECT_SCOPE="${COMPOSE_PROJECT_NAME:-}"
 
 # Report format: text | json | both
 DOCKER_HEALTH_REPORT_FORMAT="${DOCKER_HEALTH_REPORT_FORMAT:-text}"
@@ -266,12 +268,9 @@ docker_health_add_unhealthy_target() {
 collect_compose_failed_targets() {
   local services="$1"
 
-  [[ -n "$services" ]] || return 0
+  [[ -n "$services" && -n "${DOCKER_HEALTH_PROJECT_SCOPE:-}" ]] || return 0
 
-  local -a project_filter=()
-  if [[ -n "${COMPOSE_PROJECT_NAME:-}" ]]; then
-    project_filter+=(--filter "label=com.docker.compose.project=${COMPOSE_PROJECT_NAME}")
-  fi
+  local -a project_filter=(--filter "label=com.docker.compose.project=${DOCKER_HEALTH_PROJECT_SCOPE}")
 
   local service cid state exit_code health
   while IFS= read -r service; do
@@ -421,8 +420,13 @@ check_service_health() {
   local interval_c=2
 
   local -a project_filter=()
-  if [[ -n "${COMPOSE_PROJECT_NAME:-}" ]]; then
-    project_filter+=(--filter "label=com.docker.compose.project=${COMPOSE_PROJECT_NAME}")
+  if [[ -n "${DOCKER_HEALTH_PROJECT_SCOPE:-}" ]]; then
+    project_filter+=(--filter "label=com.docker.compose.project=${DOCKER_HEALTH_PROJECT_SCOPE}")
+  else
+    warning "Cannot inspect service '$service' without a resolved Compose project; marking as 'No containers'."
+    ((no_containers_count++))
+    ((services_checked++))
+    return 1
   fi
 
   while :; do
@@ -516,10 +520,12 @@ check_service_health() {
 get_service_runtime_tag() {
   local service="$1"
 
-  local -a project_filter=()
-  if [[ -n "${COMPOSE_PROJECT_NAME:-}" ]]; then
-    project_filter+=(--filter "label=com.docker.compose.project=${COMPOSE_PROJECT_NAME}")
-  fi
+  [[ -n "${DOCKER_HEALTH_PROJECT_SCOPE:-}" ]] || {
+    echo "NO_CONTAINERS"
+    return 0
+  }
+
+  local -a project_filter=(--filter "label=com.docker.compose.project=${DOCKER_HEALTH_PROJECT_SCOPE}")
 
   local -a cids=()
   while IFS= read -r cid; do
@@ -718,6 +724,7 @@ execute() {
 
     local resolved_project=""
     resolved_project="$(resolve_project_name "${compose_base_cmd[@]}")"
+    DOCKER_HEALTH_PROJECT_SCOPE="$resolved_project"
     persist_project_name "$resolved_project"
 
     echo
@@ -780,6 +787,7 @@ execute() {
 
   local resolved_project=""
   resolved_project="$(resolve_project_name "${compose_base_cmd[@]}")"
+  DOCKER_HEALTH_PROJECT_SCOPE="$resolved_project"
   persist_project_name "$resolved_project"
 
   local -a cfg_cmd=("${compose_base_cmd[@]}" config --services)
@@ -831,4 +839,6 @@ execute() {
   echo "Application started successfully!"
 }
 
-execute "$@"
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+  execute "$@"
+fi
