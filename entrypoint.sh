@@ -3,6 +3,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/lib/logging.sh"
+source "$SCRIPT_DIR/lib/parse-compose-services.sh"
 
 DOCKER_HEALTH_TIMEOUT="${DOCKER_HEALTH_TIMEOUT:-120}"
 DOCKER_HEALTH_LOG_LINES="${DOCKER_HEALTH_LOG_LINES:-25}"
@@ -689,47 +690,9 @@ execute() {
   local -a cmd_args=("$@")
 
   local -a services_from_cmd=()
-  local -a profile_args_post=()
-  local i token
-  local up_index=-1
 
-  for ((i = 0; i < ${#cmd_args[@]}; i++)); do
-    if [[ "${cmd_args[i]}" == "up" ]]; then
-      up_index=$i
-      break
-    fi
-  done
-
-  if ((up_index >= 0)); then
-    for ((i = up_index + 1; i < ${#cmd_args[@]}; i++)); do
-      token="${cmd_args[i]}"
-      [[ "$token" == "--" ]] && break
-      case "$token" in
-        --profile)
-          if ((i + 1 < ${#cmd_args[@]})) && [[ "${cmd_args[i + 1]}" != -* ]]; then
-            profile_args_post+=(--profile "${cmd_args[i + 1]}")
-            i=$((i + 1))
-          fi
-          continue
-          ;;
-        --profile=*)
-          profile_args_post+=(--profile "${token#--profile=}")
-          continue
-          ;;
-        -p)
-          if ((i + 1 < ${#cmd_args[@]})) && [[ "${cmd_args[i + 1]}" != -* ]]; then
-            profile_args_post+=(-p "${cmd_args[i + 1]}")
-            i=$((i + 1))
-          fi
-          continue
-          ;;
-      esac
-      if [[ "$token" == -* ]]; then
-        continue
-      fi
-      services_from_cmd+=("$token")
-    done
-  fi
+  collect_compose_services_from_up "${cmd_args[@]}"
+  services_from_cmd=("${COMPOSE_SERVICES_FROM_CMD[@]}")
 
   if ((${#services_from_cmd[@]} > 0)); then
     DOCKER_SERVICES_LIST="${services_from_cmd[*]}"
@@ -744,10 +707,6 @@ execute() {
     fi
     compose_base_cmd+=("${cmd_args[j]}")
   done
-
-  if ((${#profile_args_post[@]} > 0)); then
-    compose_base_cmd+=("${profile_args_post[@]}")
-  fi
 
   local compose_rc=0 tmp_out
   tmp_out="$(mktemp)"
@@ -779,19 +738,9 @@ execute() {
     rm -f "$tmp_out"
 
     echo
-    info "--- docker compose ps --all ---"
+    info "--- docker compose ps --all (current project) ---"
     echo "─────────────────────────────────────────────────────────────"
-    docker compose ps --all 2>/dev/null || true
-    echo
-
-    info "--- docker compose ls (all projects) ---"
-    echo "─────────────────────────────────────────────────────────────"
-    docker compose ls 2>/dev/null || true
-    echo
-
-    info "--- docker ps --all (global) ---"
-    echo "─────────────────────────────────────────────────────────────"
-    docker ps --all --format 'table {{.Names}}\t{{.Status}}\t{{.Image}}' || true
+    "${compose_base_cmd[@]}" ps --all 2>/dev/null || true
     echo
     echo "─────────────────────────────────────────────────────────────"
 

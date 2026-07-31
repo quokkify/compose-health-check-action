@@ -79,18 +79,25 @@ runs:
         DOCKER_HEALTH_PROJECT_NAME_INPUT: ${{ inputs.compose-project-name }}
         DOCKER_HEALTH_AUTO_APPLY_PROJECT_NAME: ${{ inputs.auto-apply-project-name }}
         DOCKER_HEALTH_PROJECT_ENV_FILE: ${{ inputs.project-name-env-file }}
+        COMPOSE_FILES_INPUT: ${{ inputs.compose-files }}
+        ADDITIONAL_COMPOSE_ARGS_INPUT: ${{ inputs.additional-compose-args }}
+        SERVICES_INPUT: ${{ inputs.services }}
+        COMPOSE_SERVICES_INPUT: ${{ inputs.compose-services }}
+        REPORT_FORMAT_INPUT: ${{ inputs.report-format }}
+        DOCKER_COMMAND_INPUT: ${{ inputs.docker-command }}
+        COMPOSE_PROFILES_INPUT: ${{ inputs.compose-profiles }}
       run: |
         set -euo pipefail
 
         SCRIPT_DIR="${GITHUB_ACTION_PATH}"
 
-        compose_files_input="${{ inputs.compose-files }}"
-        additional_args_input="${{ inputs.additional-compose-args }}"
-        services_input="${{ inputs.services }}"
-        compose_services_input="${{ inputs.compose-services }}"
-        report_format_input="${{ inputs.report-format }}"
-        docker_command_input="${{ inputs.docker-command }}"
-        compose_profiles_input="${{ inputs.compose-profiles }}"
+        compose_files_input="${COMPOSE_FILES_INPUT}"
+        additional_args_input="${ADDITIONAL_COMPOSE_ARGS_INPUT}"
+        services_input="${SERVICES_INPUT}"
+        compose_services_input="${COMPOSE_SERVICES_INPUT}"
+        report_format_input="${REPORT_FORMAT_INPUT}"
+        docker_command_input="${DOCKER_COMMAND_INPUT}"
+        compose_profiles_input="${COMPOSE_PROFILES_INPUT}"
 
         services_to_use="$compose_services_input"
         if [[ -z "$services_to_use" ]]; then
