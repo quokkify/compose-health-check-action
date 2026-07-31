@@ -33,7 +33,7 @@
   [ "$status" -eq 0 ]
   [ "$output" = "HEALTHY" ]
   grep -F 'label=com.docker.compose.project=target-project' "$marker"
-  ! grep -F 'label=com.docker.compose.service=web' "$marker" >/dev/null || true
+  grep -F 'label=com.docker.compose.service=web' "$marker"
   rm -f "$marker"
 }
 

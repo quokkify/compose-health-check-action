@@ -24,6 +24,12 @@
   [[ "${COMPOSE_SERVICES_FROM_CMD[*]}" == "web" ]]
 }
 
+@test "short timeout option operand does not become a service" {
+  source "$BATS_TEST_DIRNAME/../../lib/parse-compose-services.sh"
+  collect_compose_services_from_up docker compose up -t 30 web
+  [[ "${COMPOSE_SERVICES_FROM_CMD[*]}" == "web" ]]
+}
+
 @test "explicit boundary preserves service-like option names" {
   source "$BATS_TEST_DIRNAME/../../lib/parse-compose-services.sh"
   collect_compose_services_from_up docker compose up -- --service-with-dash web

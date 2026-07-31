@@ -77,7 +77,7 @@ resolve_project_name() {
 
 get_explicit_project_name() {
   local -a compose_cmd=("$@")
-  local i token
+  local i token resolved_project=""
 
   for ((i = 0; i < ${#compose_cmd[@]}; i++)); do
     token="${compose_cmd[i]}"
@@ -85,16 +85,20 @@ get_explicit_project_name() {
     case "$token" in
       -p|--project-name)
         if ((i + 1 < ${#compose_cmd[@]})); then
-          printf '%s\n' "${compose_cmd[i + 1]}"
-          return 0
+          resolved_project="${compose_cmd[i + 1]}"
+          i=$((i + 1))
         fi
         ;;
       --project-name=*)
-        printf '%s\n' "${token#*=}"
-        return 0
+        resolved_project="${token#*=}"
         ;;
     esac
   done
+
+  if [[ -n "$resolved_project" ]]; then
+    printf '%s\n' "$resolved_project"
+  fi
+  return 0
 }
 
 persist_project_name() {
