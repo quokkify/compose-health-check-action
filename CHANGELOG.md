@@ -1,4 +1,12 @@
-## v2.3.0.SNAPSHOT
+## v2.4.0.SNAPSHOT
+
+## v2.3.0 (31.07.2026)
+
+- Hardened composite-action input transport so shell metacharacters cannot be evaluated as generated shell source.
+- Corrected Compose service parsing for scaled services and operand-taking options, including `--no-attach` and `-t`/`--timeout`.
+- Made explicit `-p`/`--project-name` selection authoritative with Docker Compose last-value-wins semantics and safe ordered fallbacks when no containers exist yet.
+- Scoped container discovery and diagnostics to the resolved Compose project and fail closed when the project cannot be resolved.
+- Pinned internal workflow actions to immutable commits and disabled persisted checkout credentials.
 
 ## v2.2.0 (27.01.2026)
 
