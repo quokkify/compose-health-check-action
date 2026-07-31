@@ -46,6 +46,7 @@ get_repo_basename() {
 resolve_project_name() {
   local -a compose_cmd=("$@")
   local resolved_project=""
+  local resolved_from_command=""
   local resolved_from_compose=""
   local auto_apply=0
 
@@ -53,18 +54,47 @@ resolve_project_name() {
     auto_apply=1
   fi
 
-  resolved_from_compose="$(get_compose_project_name "${compose_cmd[@]}")"
-  if [[ -n "$resolved_from_compose" ]]; then
-    resolved_project="$resolved_from_compose"
-  elif [[ -n "$DOCKER_HEALTH_PROJECT_NAME_INPUT" ]]; then
-    resolved_project="$DOCKER_HEALTH_PROJECT_NAME_INPUT"
-  elif [[ -n "${COMPOSE_PROJECT_NAME:-}" ]]; then
-    resolved_project="$COMPOSE_PROJECT_NAME"
-  elif ((auto_apply == 1)); then
-    resolved_project="$(get_repo_basename)"
+  # A project flag on the command being executed is authoritative. Resolve it
+  # before querying Compose so diagnostics cannot fall back to another source
+  # while the project has no containers (or no project label) yet.
+  resolved_from_command="$(get_explicit_project_name "${compose_cmd[@]}")"
+  if [[ -n "$resolved_from_command" ]]; then
+    resolved_project="$resolved_from_command"
+  elif resolved_from_compose="$(get_compose_project_name "${compose_cmd[@]}")"; then
+    if [[ -n "$resolved_from_compose" ]]; then
+      resolved_project="$resolved_from_compose"
+    elif [[ -n "$DOCKER_HEALTH_PROJECT_NAME_INPUT" ]]; then
+      resolved_project="$DOCKER_HEALTH_PROJECT_NAME_INPUT"
+    elif [[ -n "${COMPOSE_PROJECT_NAME:-}" ]]; then
+      resolved_project="$COMPOSE_PROJECT_NAME"
+    elif ((auto_apply == 1)); then
+      resolved_project="$(get_repo_basename)"
+    fi
   fi
 
   echo "$resolved_project"
+}
+
+get_explicit_project_name() {
+  local -a compose_cmd=("$@")
+  local i token
+
+  for ((i = 0; i < ${#compose_cmd[@]}; i++)); do
+    token="${compose_cmd[i]}"
+    [[ "$token" == "--" ]] && break
+    case "$token" in
+      -p|--project-name)
+        if ((i + 1 < ${#compose_cmd[@]})); then
+          printf '%s\n' "${compose_cmd[i + 1]}"
+          return 0
+        fi
+        ;;
+      --project-name=*)
+        printf '%s\n' "${token#*=}"
+        return 0
+        ;;
+    esac
+  done
 }
 
 persist_project_name() {
