@@ -3,12 +3,15 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/lib/logging.sh"
+source "$SCRIPT_DIR/lib/parse-compose-services.sh"
 
 DOCKER_HEALTH_TIMEOUT="${DOCKER_HEALTH_TIMEOUT:-120}"
 DOCKER_HEALTH_LOG_LINES="${DOCKER_HEALTH_LOG_LINES:-25}"
 DOCKER_HEALTH_PROJECT_NAME_INPUT="${DOCKER_HEALTH_PROJECT_NAME_INPUT:-}"
 DOCKER_HEALTH_AUTO_APPLY_PROJECT_NAME="${DOCKER_HEALTH_AUTO_APPLY_PROJECT_NAME:-}"
 DOCKER_HEALTH_PROJECT_ENV_FILE="${DOCKER_HEALTH_PROJECT_ENV_FILE:-system.env}"
+# Diagnostics are fail-closed until Compose resolves an exact project name.
+DOCKER_HEALTH_PROJECT_SCOPE="${COMPOSE_PROJECT_NAME:-}"
 
 # Report format: text | json | both
 DOCKER_HEALTH_REPORT_FORMAT="${DOCKER_HEALTH_REPORT_FORMAT:-text}"
@@ -43,6 +46,7 @@ get_repo_basename() {
 resolve_project_name() {
   local -a compose_cmd=("$@")
   local resolved_project=""
+  local resolved_from_command=""
   local resolved_from_compose=""
   local auto_apply=0
 
@@ -50,18 +54,51 @@ resolve_project_name() {
     auto_apply=1
   fi
 
-  resolved_from_compose="$(get_compose_project_name "${compose_cmd[@]}")"
-  if [[ -n "$resolved_from_compose" ]]; then
-    resolved_project="$resolved_from_compose"
-  elif [[ -n "$DOCKER_HEALTH_PROJECT_NAME_INPUT" ]]; then
-    resolved_project="$DOCKER_HEALTH_PROJECT_NAME_INPUT"
-  elif [[ -n "${COMPOSE_PROJECT_NAME:-}" ]]; then
-    resolved_project="$COMPOSE_PROJECT_NAME"
-  elif ((auto_apply == 1)); then
-    resolved_project="$(get_repo_basename)"
+  # A project flag on the command being executed is authoritative. Resolve it
+  # before querying Compose so diagnostics cannot fall back to another source
+  # while the project has no containers (or no project label) yet.
+  resolved_from_command="$(get_explicit_project_name "${compose_cmd[@]}")"
+  if [[ -n "$resolved_from_command" ]]; then
+    resolved_project="$resolved_from_command"
+  elif resolved_from_compose="$(get_compose_project_name "${compose_cmd[@]}")"; then
+    if [[ -n "$resolved_from_compose" ]]; then
+      resolved_project="$resolved_from_compose"
+    elif [[ -n "$DOCKER_HEALTH_PROJECT_NAME_INPUT" ]]; then
+      resolved_project="$DOCKER_HEALTH_PROJECT_NAME_INPUT"
+    elif [[ -n "${COMPOSE_PROJECT_NAME:-}" ]]; then
+      resolved_project="$COMPOSE_PROJECT_NAME"
+    elif ((auto_apply == 1)); then
+      resolved_project="$(get_repo_basename)"
+    fi
   fi
 
   echo "$resolved_project"
+}
+
+get_explicit_project_name() {
+  local -a compose_cmd=("$@")
+  local i token resolved_project=""
+
+  for ((i = 0; i < ${#compose_cmd[@]}; i++)); do
+    token="${compose_cmd[i]}"
+    [[ "$token" == "--" ]] && break
+    case "$token" in
+      -p|--project-name)
+        if ((i + 1 < ${#compose_cmd[@]})); then
+          resolved_project="${compose_cmd[i + 1]}"
+          i=$((i + 1))
+        fi
+        ;;
+      --project-name=*)
+        resolved_project="${token#*=}"
+        ;;
+    esac
+  done
+
+  if [[ -n "$resolved_project" ]]; then
+    printf '%s\n' "$resolved_project"
+  fi
+  return 0
 }
 
 persist_project_name() {
@@ -143,6 +180,11 @@ get_compose_project_name() {
     fi
     echo "$project_label"
   fi
+
+  # No containers is a valid pre-start/zero-scale state. Return an empty
+  # project name successfully so resolve_project_name can apply its ordered,
+  # exact-project fallbacks instead of skipping them.
+  return 0
 }
 
 apply_explicit_project_name_input() {
@@ -265,12 +307,9 @@ docker_health_add_unhealthy_target() {
 collect_compose_failed_targets() {
   local services="$1"
 
-  [[ -n "$services" ]] || return 0
+  [[ -n "$services" && -n "${DOCKER_HEALTH_PROJECT_SCOPE:-}" ]] || return 0
 
-  local -a project_filter=()
-  if [[ -n "${COMPOSE_PROJECT_NAME:-}" ]]; then
-    project_filter+=(--filter "label=com.docker.compose.project=${COMPOSE_PROJECT_NAME}")
-  fi
+  local -a project_filter=(--filter "label=com.docker.compose.project=${DOCKER_HEALTH_PROJECT_SCOPE}")
 
   local service cid state exit_code health
   while IFS= read -r service; do
@@ -420,8 +459,13 @@ check_service_health() {
   local interval_c=2
 
   local -a project_filter=()
-  if [[ -n "${COMPOSE_PROJECT_NAME:-}" ]]; then
-    project_filter+=(--filter "label=com.docker.compose.project=${COMPOSE_PROJECT_NAME}")
+  if [[ -n "${DOCKER_HEALTH_PROJECT_SCOPE:-}" ]]; then
+    project_filter+=(--filter "label=com.docker.compose.project=${DOCKER_HEALTH_PROJECT_SCOPE}")
+  else
+    warning "Cannot inspect service '$service' without a resolved Compose project; marking as 'No containers'."
+    ((no_containers_count++))
+    ((services_checked++))
+    return 1
   fi
 
   while :; do
@@ -515,10 +559,12 @@ check_service_health() {
 get_service_runtime_tag() {
   local service="$1"
 
-  local -a project_filter=()
-  if [[ -n "${COMPOSE_PROJECT_NAME:-}" ]]; then
-    project_filter+=(--filter "label=com.docker.compose.project=${COMPOSE_PROJECT_NAME}")
-  fi
+  [[ -n "${DOCKER_HEALTH_PROJECT_SCOPE:-}" ]] || {
+    echo "NO_CONTAINERS"
+    return 0
+  }
+
+  local -a project_filter=(--filter "label=com.docker.compose.project=${DOCKER_HEALTH_PROJECT_SCOPE}")
 
   local -a cids=()
   while IFS= read -r cid; do
@@ -689,47 +735,9 @@ execute() {
   local -a cmd_args=("$@")
 
   local -a services_from_cmd=()
-  local -a profile_args_post=()
-  local i token
-  local up_index=-1
 
-  for ((i = 0; i < ${#cmd_args[@]}; i++)); do
-    if [[ "${cmd_args[i]}" == "up" ]]; then
-      up_index=$i
-      break
-    fi
-  done
-
-  if ((up_index >= 0)); then
-    for ((i = up_index + 1; i < ${#cmd_args[@]}; i++)); do
-      token="${cmd_args[i]}"
-      [[ "$token" == "--" ]] && break
-      case "$token" in
-        --profile)
-          if ((i + 1 < ${#cmd_args[@]})) && [[ "${cmd_args[i + 1]}" != -* ]]; then
-            profile_args_post+=(--profile "${cmd_args[i + 1]}")
-            i=$((i + 1))
-          fi
-          continue
-          ;;
-        --profile=*)
-          profile_args_post+=(--profile "${token#--profile=}")
-          continue
-          ;;
-        -p)
-          if ((i + 1 < ${#cmd_args[@]})) && [[ "${cmd_args[i + 1]}" != -* ]]; then
-            profile_args_post+=(-p "${cmd_args[i + 1]}")
-            i=$((i + 1))
-          fi
-          continue
-          ;;
-      esac
-      if [[ "$token" == -* ]]; then
-        continue
-      fi
-      services_from_cmd+=("$token")
-    done
-  fi
+  collect_compose_services_from_up "${cmd_args[@]}"
+  services_from_cmd=("${COMPOSE_SERVICES_FROM_CMD[@]}")
 
   if ((${#services_from_cmd[@]} > 0)); then
     DOCKER_SERVICES_LIST="${services_from_cmd[*]}"
@@ -745,10 +753,6 @@ execute() {
     compose_base_cmd+=("${cmd_args[j]}")
   done
 
-  if ((${#profile_args_post[@]} > 0)); then
-    compose_base_cmd+=("${profile_args_post[@]}")
-  fi
-
   local compose_rc=0 tmp_out
   tmp_out="$(mktemp)"
 
@@ -759,6 +763,7 @@ execute() {
 
     local resolved_project=""
     resolved_project="$(resolve_project_name "${compose_base_cmd[@]}")"
+    DOCKER_HEALTH_PROJECT_SCOPE="$resolved_project"
     persist_project_name "$resolved_project"
 
     echo
@@ -779,19 +784,9 @@ execute() {
     rm -f "$tmp_out"
 
     echo
-    info "--- docker compose ps --all ---"
+    info "--- docker compose ps --all (current project) ---"
     echo "─────────────────────────────────────────────────────────────"
-    docker compose ps --all 2>/dev/null || true
-    echo
-
-    info "--- docker compose ls (all projects) ---"
-    echo "─────────────────────────────────────────────────────────────"
-    docker compose ls 2>/dev/null || true
-    echo
-
-    info "--- docker ps --all (global) ---"
-    echo "─────────────────────────────────────────────────────────────"
-    docker ps --all --format 'table {{.Names}}\t{{.Status}}\t{{.Image}}' || true
+    "${compose_base_cmd[@]}" ps --all 2>/dev/null || true
     echo
     echo "─────────────────────────────────────────────────────────────"
 
@@ -831,6 +826,7 @@ execute() {
 
   local resolved_project=""
   resolved_project="$(resolve_project_name "${compose_base_cmd[@]}")"
+  DOCKER_HEALTH_PROJECT_SCOPE="$resolved_project"
   persist_project_name "$resolved_project"
 
   local -a cfg_cmd=("${compose_base_cmd[@]}" config --services)
@@ -882,4 +878,6 @@ execute() {
   echo "Application started successfully!"
 }
 
-execute "$@"
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+  execute "$@"
+fi

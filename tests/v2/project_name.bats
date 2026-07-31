@@ -43,6 +43,7 @@ load '../helpers.bash'
   export INPUT_COMPOSE_PROJECT_NAME="explicitname"
   export INPUT_AUTO_APPLY_PROJECT_NAME="true"
   export COMPOSE_PROJECT_NAME="envname"
+  export HC_SKIP_PROJECT_INJECT="1"
 
   tmpdir="$(mktemp -d)"
   export INPUT_PROJECT_NAME_ENV_FILE="${tmpdir}/system.env"
@@ -60,6 +61,7 @@ load '../helpers.bash'
   export INPUT_TIMEOUT="0"
   export INPUT_AUTO_APPLY_PROJECT_NAME="true"
   export COMPOSE_PROJECT_NAME="envname"
+  export HC_SKIP_PROJECT_INJECT="1"
   unset INPUT_COMPOSE_PROJECT_NAME
 
   tmpdir="$(mktemp -d)"
@@ -78,6 +80,7 @@ load '../helpers.bash'
   export INPUT_TIMEOUT="0"
   export INPUT_AUTO_APPLY_PROJECT_NAME="true"
   export GITHUB_REPOSITORY="ylazakovich/compose-health-check-action"
+  export HC_SKIP_PROJECT_INJECT="1"
   unset INPUT_COMPOSE_PROJECT_NAME
   unset COMPOSE_PROJECT_NAME
 

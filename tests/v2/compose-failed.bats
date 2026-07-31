@@ -21,8 +21,9 @@ load '../helpers.bash'
   assert_output --partial "Diagnostics summary"
   assert_output --partial "docker-compose.compose_failed.yml"
   assert_output --partial "docker compose output (last 25 lines)"
-  assert_output --partial "docker compose ls (all projects)"
-  assert_output --partial "docker ps --all (global)"
+  assert_output --partial "docker compose ps --all (current project)"
+  refute_output --partial "docker compose ls (all projects)"
+  refute_output --partial "docker ps --all (global)"
 }
 
 @test "docker-command: compose up fails but exited container is treated as unhealthy" {
