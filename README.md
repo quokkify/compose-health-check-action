@@ -8,7 +8,7 @@
 ✅ Fails on unhealthy or broken services  
 ✅ Shows clear diagnostics on error
 
-![GitHub release (latest by date)](https://img.shields.io/github/v/release/ylazakovich/compose-health-check-action)
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/quokkify/compose-health-check-action)
 ![Docker Compose](https://img.shields.io/badge/Docker-Compose-blue?logo=docker&logoColor=white)
 ![Bats tests](https://img.shields.io/endpoint?url=https://ylazakovich.github.io/compose-health-check-action/tests.json)
 
@@ -17,13 +17,13 @@
 ## ⚡ Quick start
 
 ```yaml
-- uses: ylazakovich/compose-health-check-action@v2
+- uses: quokkify/compose-health-check-action@v2
   with:
     docker-command: docker compose -f docker-compose.yml up
 ```
 
 ```yaml
-- uses: ylazakovich/compose-health-check-action@v2
+- uses: quokkify/compose-health-check-action@v2
   with:
     compose-files: |
       docker-compose.yml
@@ -77,7 +77,7 @@ pass or fail CI
 Example:
 
 ```yaml
-- uses: ylazakovich/compose-health-check-action@v2
+- uses: quokkify/compose-health-check-action@v2
   with:
     compose-files: |
       docker-compose.yml
@@ -96,7 +96,7 @@ Example:
 Run a custom compose command (replaces `compose-files` and `additional-compose-args`):
 
 ```yaml
-- uses: ylazakovich/compose-health-check-action@v2
+- uses: quokkify/compose-health-check-action@v2
   with:
     docker-command: docker compose -f docker-compose.yml -f docker-compose.override.yml up -d api
 ```
