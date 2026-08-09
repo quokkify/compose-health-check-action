@@ -98,7 +98,7 @@ Example:
     project-name-env-file: system.env
 ```
 
-Both lifecycle hooks are resolved inside `GITHUB_WORKSPACE` and receive the normalized Compose profiles as positional arguments. The before hook is sourced in the same shell that starts Compose, so exported values are available to Compose interpolation. A failing hook fails the action; arbitrary command strings are not evaluated.
+Both lifecycle hooks are resolved and validated inside `GITHUB_WORKSPACE` before Compose starts, so a missing file or workspace-escaping symlink cannot leave a newly started stack behind. Hooks receive the normalized Compose profiles as positional arguments. The before hook is sourced in the same errexit-enabled lifecycle shell that starts Compose, so exported values are available to Compose interpolation and an unhandled command failure stops the lifecycle. A failing hook fails the action; arbitrary command strings are not evaluated.
 
 ```bash
 # tools/environment/prepare-ci.sh

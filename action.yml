@@ -134,43 +134,24 @@ runs:
           bash "${SCRIPT_DIR}/lib/build-compose-command.sh"
         )
 
+        resolved_before_hook="$(bash "${SCRIPT_DIR}/lib/resolve-lifecycle-hook.sh" "$before_compose_hook_input" "${GITHUB_WORKSPACE:-}" "before-compose-hook")"
+        resolved_after_hook="$(bash "${SCRIPT_DIR}/lib/resolve-lifecycle-hook.sh" "$after_health_hook_input" "${GITHUB_WORKSPACE:-}" "after-health-hook")"
+
         TMP_OUT="$(mktemp)"
         JSON_TMP="$(mktemp)"
 
         # Tell the healthcheck script where to write JSON (if report-format is json/both).
         export DOCKER_HEALTH_REPORT_JSON_FILE="$JSON_TMP"
         export DOCKER_HEALTH_REPORT_FORMAT="$report_format_input"
+        export SCRIPT_DIR docker_command_input compose_profiles_input
+        export before_compose_hook_input after_health_hook_input
+        export resolved_before_hook resolved_after_hook
 
-        run_hook() {
-          local hook_name="$1"
-          local hook_input="$2"
-          [[ -n "$hook_input" ]] || return 0
-
-          local resolved_hook
-          resolved_hook="$(bash "${SCRIPT_DIR}/lib/resolve-lifecycle-hook.sh" "$hook_input" "${GITHUB_WORKSPACE:-}" "$hook_name")"
-
-          local -a hook_profiles=()
-          if [[ -z "$docker_command_input" && -n "$compose_profiles_input" ]]; then
-            read -r -a hook_profiles <<<"$(tr '\n' ' ' <<<"$compose_profiles_input")"
-          fi
-
-          echo "Running $hook_name: $hook_input"
-          # Hooks are repository-owned code. Source them so before-compose exports
-          # remain available to Docker Compose interpolation in this lifecycle.
-          # Reset positional parameters first: `source file` with no explicit
-          # arguments would otherwise leak run_hook's own name/path arguments.
-          set -- "${hook_profiles[@]}"
-          source "$resolved_hook" "$@"
-        }
-
-        run_lifecycle() {
-          run_hook "before-compose-hook" "$before_compose_hook_input" || return $?
-          bash "${SCRIPT_DIR}/entrypoint.sh" "${CMD[@]}" || return $?
-          run_hook "after-health-hook" "$after_health_hook_input" || return $?
-        }
-
+        # Execute the complete lifecycle in a fresh errexit-enabled shell. The parent
+        # disables errexit only to capture the pipeline status; that must not weaken
+        # `set -e` inside sourced project hooks.
         set +e
-        run_lifecycle 2>&1 | tee "$TMP_OUT"
+        bash "${SCRIPT_DIR}/lib/run-lifecycle.sh" "${CMD[@]}" 2>&1 | tee "$TMP_OUT"
         lifecycle_status=("${PIPESTATUS[@]}")
         set -e
         rc="${lifecycle_status[0]}"

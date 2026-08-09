@@ -14,15 +14,21 @@
   done
 }
 
-@test "lifecycle hooks are resolved as paths and never evaluated as shell source strings" {
+@test "lifecycle hooks are pre-resolved and delegated without eval" {
   action="$BATS_TEST_DIRNAME/../../action.yml"
-  grep -F 'resolve-lifecycle-hook.sh' "$action"
-  grep -F 'set -- "${hook_profiles[@]}"' "$action"
-  grep -F 'source "$resolved_hook" "$@"' "$action"
-  grep -F '[[ -z "$docker_command_input" && -n "$compose_profiles_input" ]]' "$action"
-  grep -F 'run_hook "before-compose-hook" "$before_compose_hook_input" || return $?' "$action"
+  runner="$BATS_TEST_DIRNAME/../../lib/run-lifecycle.sh"
+
+  before_line="$(grep -n 'resolved_before_hook="$(bash' "$action" | cut -d: -f1)"
+  after_line="$(grep -n 'resolved_after_hook="$(bash' "$action" | cut -d: -f1)"
+  runner_line="$(grep -n 'lib/run-lifecycle.sh' "$action" | cut -d: -f1)"
+  [ "$before_line" -lt "$runner_line" ]
+  [ "$after_line" -lt "$runner_line" ]
+
+  grep -F 'set -- "${hook_profiles[@]}"' "$runner"
+  grep -F 'source "$resolved_hook" "$@"' "$runner"
+  grep -F '[[ -z "$docker_command_input" && -n "$compose_profiles_input" ]]' "$runner"
   grep -F 'rc="${lifecycle_status[0]}"' "$action"
-  run grep -E '(^|[[:space:]])eval([[:space:]]|$)' "$action"
+  run grep -E '(^|[[:space:]])eval([[:space:]]|$)' "$action" "$runner"
   [ "$status" -eq 1 ]
 }
 
