@@ -1,4 +1,12 @@
-## v2.4.0.SNAPSHOT
+## v2.5.0.SNAPSHOT
+
+## v2.4.0 (09.08.2026)
+
+- Added optional repository-owned `before-compose-hook` and `after-health-hook` lifecycle scripts around Compose startup and built-in health checks.
+- Resolved and validated both hook paths inside `GITHUB_WORKSPACE` before startup, rejecting absolute paths, traversal, missing files, and workspace-escaping symlinks.
+- Ran hooks in a strict lifecycle shell so before-hook exports reach Compose interpolation and unhandled hook failures stop the lifecycle with the original exit status.
+- Passed normalized Compose profiles to hooks while preserving `docker-command` profile-precedence semantics.
+- Suppressed successful JSON lifecycle output when bootstrap, Compose health, or project readiness fails, with execution-level Bats regression coverage.
 
 ## v2.3.0 (31.07.2026)
 
