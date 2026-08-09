@@ -17,7 +17,11 @@
 @test "lifecycle hooks are resolved as paths and never evaluated as shell source strings" {
   action="$BATS_TEST_DIRNAME/../../action.yml"
   grep -F 'resolve-lifecycle-hook.sh' "$action"
-  grep -F 'source "$resolved_hook" "${hook_profiles[@]}"' "$action"
+  grep -F 'set -- "${hook_profiles[@]}"' "$action"
+  grep -F 'source "$resolved_hook" "$@"' "$action"
+  grep -F '[[ -z "$docker_command_input" && -n "$compose_profiles_input" ]]' "$action"
+  grep -F 'run_hook "before-compose-hook" "$before_compose_hook_input" || return $?' "$action"
+  grep -F 'rc="${lifecycle_status[0]}"' "$action"
   run grep -E '(^|[[:space:]])eval([[:space:]]|$)' "$action"
   [ "$status" -eq 1 ]
 }

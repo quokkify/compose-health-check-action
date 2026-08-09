@@ -150,27 +150,30 @@ runs:
           resolved_hook="$(bash "${SCRIPT_DIR}/lib/resolve-lifecycle-hook.sh" "$hook_input" "${GITHUB_WORKSPACE:-}" "$hook_name")"
 
           local -a hook_profiles=()
-          if [[ -n "$compose_profiles_input" ]]; then
+          if [[ -z "$docker_command_input" && -n "$compose_profiles_input" ]]; then
             read -r -a hook_profiles <<<"$(tr '\n' ' ' <<<"$compose_profiles_input")"
           fi
 
           echo "Running $hook_name: $hook_input"
           # Hooks are repository-owned code. Source them so before-compose exports
           # remain available to Docker Compose interpolation in this lifecycle.
-          source "$resolved_hook" "${hook_profiles[@]}"
+          # Reset positional parameters first: `source file` with no explicit
+          # arguments would otherwise leak run_hook's own name/path arguments.
+          set -- "${hook_profiles[@]}"
+          source "$resolved_hook" "$@"
         }
 
         run_lifecycle() {
-          set -e
-          run_hook "before-compose-hook" "$before_compose_hook_input"
-          bash "${SCRIPT_DIR}/entrypoint.sh" "${CMD[@]}"
-          run_hook "after-health-hook" "$after_health_hook_input"
+          run_hook "before-compose-hook" "$before_compose_hook_input" || return $?
+          bash "${SCRIPT_DIR}/entrypoint.sh" "${CMD[@]}" || return $?
+          run_hook "after-health-hook" "$after_health_hook_input" || return $?
         }
 
         set +e
         run_lifecycle 2>&1 | tee "$TMP_OUT"
-        rc=${PIPESTATUS[0]}
+        lifecycle_status=("${PIPESTATUS[@]}")
         set -e
+        rc="${lifecycle_status[0]}"
 
         OUTPUT_B64="$(base64 <"$TMP_OUT" | tr -d '\n')"
         echo "summary_b64=$OUTPUT_B64" >>"$GITHUB_OUTPUT"
