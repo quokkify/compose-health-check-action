@@ -5,6 +5,7 @@
 ✅ Runs Docker Compose  
 ✅ Autodetection host platform  
 ✅ Waits for container healthchecks  
+✅ Runs optional project-owned bootstrap and readiness hooks
 ✅ Fails on unhealthy or broken services  
 ✅ Shows clear diagnostics on error
 
@@ -64,6 +65,8 @@ pass or fail CI
 | `compose-files`           | no       | One or more docker-compose files (default: `docker-compose.yml`, used when `docker-command` is empty) |
 | `compose-project-name`    | no       | Explicit docker compose project name (overridden by `-p/--project-name` in `docker-command`)          |
 | `compose-profiles`        | no       | One or more compose profiles (space or newline separated; ignored when `docker-command` is set)       |
+| `before-compose-hook`     | no       | Repository-relative Bash file sourced before Compose; may export interpolation variables              |
+| `after-health-hook`       | no       | Repository-relative Bash file sourced after container checks for project-specific readiness           |
 | `compose-services`        | no       | Services to check (defaults to all services when omitted; ignored when `docker-command` is set)       |
 | `additional-compose-args` | no       | Additional args for docker compose (e.g. `--quiet-pull` or `--build`)                                 |
 | `services`                | no       | Deprecated alias for `compose-services`                                                               |
@@ -87,10 +90,22 @@ Example:
       api
     compose-profiles: |
       default
+    before-compose-hook: tools/environment/prepare-ci.sh
+    after-health-hook: tools/environment/check-readiness.sh
     timeout: 60
     log-lines: 50
     auto-apply-project-name: true
     project-name-env-file: system.env
+```
+
+Both lifecycle hooks are resolved and validated inside `GITHUB_WORKSPACE` before Compose starts, so a missing file or workspace-escaping symlink cannot leave a newly started stack behind. Hooks receive the normalized Compose profiles as positional arguments. The before hook is sourced in the same errexit-enabled lifecycle shell that starts Compose, so exported values are available to Compose interpolation and an unhandled command failure stops the lifecycle. A failing hook fails the action; arbitrary command strings are not evaluated.
+
+```bash
+# tools/environment/prepare-ci.sh
+export API_PORT="$(python3 tools/find_free_port.py)"
+
+# tools/environment/check-readiness.sh
+curl --fail --retry 20 --retry-delay 2 http://127.0.0.1:"$API_PORT"/ready
 ```
 
 Run a custom compose command (replaces `compose-files` and `additional-compose-args`):

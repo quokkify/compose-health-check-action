@@ -36,6 +36,14 @@ inputs:
     description: "One or more compose profiles (space or newline separated). Ignored when docker-command is set."
     required: false
     default: ""
+  before-compose-hook:
+    description: "Optional repository-relative Bash file sourced before docker compose; receives compose profiles as arguments and may export Compose interpolation variables."
+    required: false
+    default: ""
+  after-health-hook:
+    description: "Optional repository-relative Bash file sourced after built-in container health checks; receives compose profiles as arguments and may perform project-specific readiness checks."
+    required: false
+    default: ""
   docker-command:
     description: "Full docker compose command to execute instead of compose-files/services (e.g. docker compose -f docker-compose.yml up -d web)"
     required: false
@@ -86,6 +94,8 @@ runs:
         REPORT_FORMAT_INPUT: ${{ inputs.report-format }}
         DOCKER_COMMAND_INPUT: ${{ inputs.docker-command }}
         COMPOSE_PROFILES_INPUT: ${{ inputs.compose-profiles }}
+        BEFORE_COMPOSE_HOOK_INPUT: ${{ inputs.before-compose-hook }}
+        AFTER_HEALTH_HOOK_INPUT: ${{ inputs.after-health-hook }}
       run: |
         set -euo pipefail
 
@@ -98,6 +108,8 @@ runs:
         report_format_input="${REPORT_FORMAT_INPUT}"
         docker_command_input="${DOCKER_COMMAND_INPUT}"
         compose_profiles_input="${COMPOSE_PROFILES_INPUT}"
+        before_compose_hook_input="${BEFORE_COMPOSE_HOOK_INPUT}"
+        after_health_hook_input="${AFTER_HEALTH_HOOK_INPUT}"
 
         services_to_use="$compose_services_input"
         if [[ -z "$services_to_use" ]]; then
@@ -122,23 +134,33 @@ runs:
           bash "${SCRIPT_DIR}/lib/build-compose-command.sh"
         )
 
+        resolved_before_hook="$(bash "${SCRIPT_DIR}/lib/resolve-lifecycle-hook.sh" "$before_compose_hook_input" "${GITHUB_WORKSPACE:-}" "before-compose-hook")"
+        resolved_after_hook="$(bash "${SCRIPT_DIR}/lib/resolve-lifecycle-hook.sh" "$after_health_hook_input" "${GITHUB_WORKSPACE:-}" "after-health-hook")"
+
         TMP_OUT="$(mktemp)"
         JSON_TMP="$(mktemp)"
 
         # Tell the healthcheck script where to write JSON (if report-format is json/both).
         export DOCKER_HEALTH_REPORT_JSON_FILE="$JSON_TMP"
         export DOCKER_HEALTH_REPORT_FORMAT="$report_format_input"
+        export SCRIPT_DIR docker_command_input compose_profiles_input
+        export before_compose_hook_input after_health_hook_input
+        export resolved_before_hook resolved_after_hook
 
+        # Execute the complete lifecycle in a fresh errexit-enabled shell. The parent
+        # disables errexit only to capture the pipeline status; that must not weaken
+        # `set -e` inside sourced project hooks.
         set +e
-        bash "${SCRIPT_DIR}/entrypoint.sh" "${CMD[@]}" 2>&1 | tee "$TMP_OUT"
-        rc=${PIPESTATUS[0]}
+        bash "${SCRIPT_DIR}/lib/run-lifecycle.sh" "${CMD[@]}" 2>&1 | tee "$TMP_OUT"
+        lifecycle_status=("${PIPESTATUS[@]}")
         set -e
+        rc="${lifecycle_status[0]}"
 
         OUTPUT_B64="$(base64 <"$TMP_OUT" | tr -d '\n')"
         echo "summary_b64=$OUTPUT_B64" >>"$GITHUB_OUTPUT"
 
-        # JSON output is optional; only publish if present and non-empty
-        if [[ -s "$JSON_TMP" ]]; then
+        # JSON describes the complete lifecycle only when Compose and both hooks pass.
+        if [[ "$rc" -eq 0 && -s "$JSON_TMP" ]]; then
           JSON_B64="$(base64 <"$JSON_TMP" | tr -d '\n')"
           echo "report_json_b64=$JSON_B64" >>"$GITHUB_OUTPUT"
         else
