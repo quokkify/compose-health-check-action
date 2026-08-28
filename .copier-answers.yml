@@ -1,4 +1,4 @@
-_commit: v2.12.4
+_commit: v2.14.0
 _src_path: https://github.com/quokkify/project-toolkit.git
 allure_report: false
 components: []
@@ -11,4 +11,4 @@ renovate_presets:
   - default
   - github-actions
   - docker
-toolkit_version: v2.12.4
+toolkit_version: v2.14.0
