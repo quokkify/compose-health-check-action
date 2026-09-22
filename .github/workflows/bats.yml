@@ -80,12 +80,35 @@ jobs:
 
       - id: meta
         name: Compute safe artifact name
+        if: always()
         shell: bash
         run: |
           set -euo pipefail
           FILE="${{ matrix.bats_file }}"
           SAFE="$(echo "$FILE" | tr '/.' '__')"
           echo "safe_name=$SAFE" >> "$GITHUB_OUTPUT"
+
+      - name: Convert JUnit report to Allure results
+        if: always()
+        shell: bash
+        env:
+          BATS_FILE: ${{ matrix.bats_file }}
+          SAFE_NAME: ${{ steps.meta.outputs.safe_name }}
+        run: |
+          python3 scripts/junit_to_allure.py \
+            --input "test-reports/${SAFE_NAME}" \
+            --output allure-artifact/allure-results \
+            --module "${SAFE_NAME}"
+
+      - name: Upload Allure results
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: allure-results-${{ steps.meta.outputs.safe_name }}-${{ github.run_attempt }}
+          path: allure-artifact
+          if-no-files-found: error
+          retention-days: 7
+          overwrite: true
 
       - name: Upload JUnit report
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
@@ -96,3 +119,17 @@ jobs:
           if-no-files-found: error
           retention-days: 7
           overwrite: true
+
+  complete:
+    name: Tests pipeline complete
+    needs: [discover, bats]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify required test jobs
+        env:
+          DISCOVER_RESULT: ${{ needs.discover.result }}
+          BATS_RESULT: ${{ needs.bats.result }}
+        run: |
+          [[ "$DISCOVER_RESULT" == success ]]
+          [[ "$BATS_RESULT" == success ]]
