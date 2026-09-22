@@ -1,6 +1,6 @@
 # Compose Health Check Action
 
-Generated with `quokkify/project-toolkit` at `v2.17.0`. Run `copier update` to apply future template changes; Renovate updates workflow version references independently.
+Generated with `quokkify/project-toolkit` at `v2.21.6`. Run `copier update` to apply future template changes; Renovate updates workflow version references independently.
 
 > Fail your CI early if Docker Compose services are not healthy.
 
@@ -13,7 +13,7 @@ Generated with `quokkify/project-toolkit` at `v2.17.0`. Run `copier update` to a
 
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/quokkify/compose-health-check-action)
 ![Docker Compose](https://img.shields.io/badge/Docker-Compose-blue?logo=docker&logoColor=white)
-![Bats tests](https://img.shields.io/endpoint?url=https://ylazakovich.github.io/compose-health-check-action/tests.json)
+![Bats tests](https://img.shields.io/endpoint?url=https://quokkify.github.io/compose-health-check-action/tests.json)
 
 ---
 
