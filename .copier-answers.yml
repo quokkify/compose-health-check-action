@@ -1,4 +1,4 @@
-_commit: v2.22.0
+_commit: v2.23.2
 _src_path: https://github.com/quokkify/project-toolkit.git
 allure_categories_file: ""
 allure_external_artifact_max_count: 50
@@ -13,6 +13,7 @@ codeql: true
 codeql_languages: []
 components: []
 docker: false
+gitleaks: true
 project_name: Compose Health Check Action
 release_mode: single
 release_please: true
@@ -22,4 +23,4 @@ renovate_presets:
   - default
   - github-actions
   - docker
-toolkit_version: v2.22.0
+toolkit_version: v2.23.2
