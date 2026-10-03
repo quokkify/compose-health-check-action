@@ -1,6 +1,6 @@
 # Compose Health Check Action
 
-Generated with `quokkify/project-toolkit` at `v2.21.6`. Run `copier update` to apply future template changes; Renovate updates workflow version references independently.
+Generated with `quokkify/ci-kit` at `v3.0.0`. Run `copier update` to apply future template changes; Renovate updates workflow version references independently.
 
 > Fail your CI early if Docker Compose services are not healthy.
 

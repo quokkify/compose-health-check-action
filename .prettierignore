@@ -1,2 +1,5 @@
 # Kept byte-for-byte aligned with the shared Copier template.
 .github/workflows/allure-report.yml
+
+# Generated and refreshed by ci-kit copier update.
+docs/ci-kit.md
