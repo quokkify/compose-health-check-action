@@ -1,0 +1,1 @@
+{"id":"e50b00fa6b6f2e1589b3abdeb7304b8b.d41d8cd98f00b204e9800998ecf8427e","fullName":"compose-failed.bats::docker-command: docker compose command fails and diagnostics are printed","name":"docker-command: docker compose command fails and diagnostics are printed","status":"passed","testResultsByEnv":{"tests-v2-compose-failed-bats":"bfb27c135b0c277bacf284bb711f81a5"}}
