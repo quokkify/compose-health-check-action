@@ -1,0 +1,1 @@
+{"id":"8fefeef98f1f4545eb9c30104f8d322b.d41d8cd98f00b204e9800998ecf8427e","fullName":"multifile_compose.bats::multi-file compose: override adds healthcheck and service becomes healthy","name":"multi-file compose: override adds healthcheck and service becomes healthy","status":"passed","testResultsByEnv":{"tests-v1-multifile-compose-bats":"3d5982ae1d8420237b9d7e47bc48f3e2"}}
