@@ -1,0 +1,1 @@
+{"id":"b8378e8706710e8046076c25d1313983.d41d8cd98f00b204e9800998ecf8427e","fullName":"project_name.bats::auto-apply false does not write COMPOSE_PROJECT_NAME env","name":"auto-apply false does not write COMPOSE_PROJECT_NAME env","status":"passed","testResultsByEnv":{"tests-v1-project-name-bats":"7e75b3f1fb495e10439dc78dc9d843e2"}}

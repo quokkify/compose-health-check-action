@@ -1,0 +1,1 @@
+{"id":"cf93760d00bea0778626a39e05507d0c.d41d8cd98f00b204e9800998ecf8427e","fullName":"lifecycle_hooks.bats::rejects a hook symlink that resolves outside the workspace","name":"rejects a hook symlink that resolves outside the workspace","status":"passed","testResultsByEnv":{"tests-unit-lifecycle-hooks-bats":"50160f94abb98bf06051d45f61efeccd"}}
