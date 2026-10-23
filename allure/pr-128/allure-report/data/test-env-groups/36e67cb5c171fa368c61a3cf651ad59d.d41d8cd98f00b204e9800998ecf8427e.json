@@ -1,0 +1,1 @@
+{"id":"36e67cb5c171fa368c61a3cf651ad59d.d41d8cd98f00b204e9800998ecf8427e","fullName":"healthy.bats::healthy: overall ok when services are taken from DOCKER_SERVICES_LIST","name":"healthy: overall ok when services are taken from DOCKER_SERVICES_LIST","status":"passed","testResultsByEnv":{"tests-v1-healthy-bats":"63ee8f287f63b3e6e4d9dfa3c14e7e5e"}}
