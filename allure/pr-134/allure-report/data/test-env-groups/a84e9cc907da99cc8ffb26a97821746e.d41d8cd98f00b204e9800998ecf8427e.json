@@ -1,0 +1,1 @@
+{"id":"a84e9cc907da99cc8ffb26a97821746e.d41d8cd98f00b204e9800998ecf8427e","fullName":"unhealthy.bats::unhealthy: respects DOCKER_HEALTH_LOG_LINES for diagnostics","name":"unhealthy: respects DOCKER_HEALTH_LOG_LINES for diagnostics","status":"passed","testResultsByEnv":{"tests-v1-unhealthy-bats":"d97ef855bdc35aa5d7e4b12e71598414"}}
