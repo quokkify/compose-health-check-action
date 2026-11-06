@@ -1,0 +1,1 @@
+{"id":"74cf586f67aa2d9607fc482c3e13ea7a.d41d8cd98f00b204e9800998ecf8427e","fullName":"services_precedence.bats::services precedence: CLI services override DOCKER_SERVICES_LIST","name":"services precedence: CLI services override DOCKER_SERVICES_LIST","status":"passed","testResultsByEnv":{"tests-v1-services-precedence-bats":"19d0e3746e879334d2d31ca8db3806df"}}

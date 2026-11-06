@@ -1,0 +1,1 @@
+{"id":"f7174e40fdd96b264b7d7b5ea45accae.d41d8cd98f00b204e9800998ecf8427e","fullName":"lifecycle_runner.bats::errexit failure in before hook prevents Compose lifecycle","name":"errexit failure in before hook prevents Compose lifecycle","status":"passed","testResultsByEnv":{"tests-unit-lifecycle-runner-bats":"16c76e697c29d19fbf8b5267791ee1c5"}}

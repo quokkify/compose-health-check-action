@@ -1,0 +1,1 @@
+{"id":"892d4a2c05dbd03759052fd921045aff.d41d8cd98f00b204e9800998ecf8427e","fullName":"compose_services.bats::scale without explicit service leaves auto-discovery to compose config","name":"scale without explicit service leaves auto-discovery to compose config","status":"passed","testResultsByEnv":{"tests-unit-compose-services-bats":"b57109d77d7b3a422a040f068db57322"}}
