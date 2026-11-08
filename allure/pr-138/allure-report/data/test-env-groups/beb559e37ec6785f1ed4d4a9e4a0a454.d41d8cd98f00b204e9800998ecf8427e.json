@@ -1,0 +1,1 @@
+{"id":"beb559e37ec6785f1ed4d4a9e4a0a454.d41d8cd98f00b204e9800998ecf8427e","fullName":"oneshot.bats::docker-command: exit 0 is treated as success (service is completed)","name":"docker-command: exit 0 is treated as success (service is completed)","status":"passed","testResultsByEnv":{"tests-v2-oneshot-bats":"522cda55d23689e4d251c7c54a7c9ef6"}}

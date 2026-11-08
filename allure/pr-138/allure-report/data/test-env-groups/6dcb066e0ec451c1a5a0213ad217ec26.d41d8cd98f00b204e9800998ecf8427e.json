@@ -1,0 +1,1 @@
+{"id":"6dcb066e0ec451c1a5a0213ad217ec26.d41d8cd98f00b204e9800998ecf8427e","fullName":"compose-failed.bats::docker-command: compose up fails but exited container is treated as unhealthy","name":"docker-command: compose up fails but exited container is treated as unhealthy","status":"passed","testResultsByEnv":{"tests-v2-compose-failed-bats":"06ea7d36b50f88b1369ae9686d46ddb1"}}
