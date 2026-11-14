@@ -1,0 +1,1 @@
+{"id":"84ab98a6a49bbc4bc32269abada52762.d41d8cd98f00b204e9800998ecf8427e","fullName":"multifile_compose.bats::docker-command: override adds healthcheck and service becomes healthy","name":"docker-command: override adds healthcheck and service becomes healthy","status":"passed","testResultsByEnv":{"tests-v2-multifile-compose-bats":"dc65d1f471dc1518db26caa5b58e7c24"}}

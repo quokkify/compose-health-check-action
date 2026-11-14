@@ -1,0 +1,1 @@
+{"id":"c04b8539e5d600972fe977bd43b4a856.d41d8cd98f00b204e9800998ecf8427e","fullName":"oneshot.bats::docker-command: non-zero exit code fails the action","name":"docker-command: non-zero exit code fails the action","status":"passed","testResultsByEnv":{"tests-v2-oneshot-bats":"6ee372411aa31a0cef3541acb348a5be"}}
