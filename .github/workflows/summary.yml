@@ -5,15 +5,16 @@ on:
     types:
       - completed
 
-permissions:
-  contents: write
-  actions: read
-  checks: write
+permissions: {}
 
 jobs:
   summary:
     name: "Report summary"
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+      checks: write
 
     outputs:
       passed: ${{ steps.report.outputs.passed }}
@@ -48,6 +49,8 @@ jobs:
     needs: summary
     if: github.event.workflow_run.event == 'push' && github.event.workflow_run.head_branch == 'main'
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: 🔨Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
