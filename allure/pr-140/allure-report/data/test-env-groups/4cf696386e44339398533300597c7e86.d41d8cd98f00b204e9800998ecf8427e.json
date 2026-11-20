@@ -1,0 +1,1 @@
+{"id":"4cf696386e44339398533300597c7e86.d41d8cd98f00b204e9800998ecf8427e","fullName":"project_name.bats::fallback uses COMPOSE_PROJECT_NAME when no containers and no input","name":"fallback uses COMPOSE_PROJECT_NAME when no containers and no input","status":"passed","testResultsByEnv":{"tests-v1-project-name-bats":"fe5f9c2e9959cc66c45731287ecb9b9f"}}

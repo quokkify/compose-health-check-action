@@ -1,0 +1,1 @@
+{"id":"317fb379446b745b477bf1da06125ee0.d41d8cd98f00b204e9800998ecf8427e","fullName":"no-services.bats::no services: uses all services when DOCKER_SERVICES_LIST is not set","name":"no services: uses all services when DOCKER_SERVICES_LIST is not set","status":"passed","testResultsByEnv":{"tests-v1-no-services-bats":"38d70bba82c35f5c27135472c1d189fe"}}
