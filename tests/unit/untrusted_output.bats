@@ -81,3 +81,13 @@ begin_token() { sed -n 's/^::stop-commands::\([0-9a-f]\{32\}\)$/\1/p' <<<"$1" | 
   done
   [ "$(grep -c '^::stop-commands::' <<<"$output")" -eq "$(grep -c '^::[0-9a-f]\{32\}::$' <<<"$output")" ]
 }
+
+@test "regression guard: an enormous single line is truncated with a visible suffix" {
+  run bash -c 'source "$1"; head -c 200000 /dev/zero | tr "\0" "a" | emit_untrusted "  "' _ "$BATS_TEST_DIRNAME/../../lib/logging.sh"
+  [ "$status" -eq 0 ]
+  mapfile -t lines <<<"$output"
+  [ "${#lines[@]}" -eq 3 ]
+  [ "${#lines[1]}" -le $((2 + 4096 + 20)) ]
+  [[ "${lines[1]}" == *"…[truncated]" ]]
+  [[ "${lines[2]}" =~ ^::[0-9a-f]{32}::$ ]]
+}

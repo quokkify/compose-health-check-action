@@ -58,16 +58,23 @@ jobs:
           persist-credentials: false
 
       - name: Build Shields endpoint JSON (passed/failed/skipped)
+        env:
+          PASSED: ${{ needs.summary.outputs.passed }}
+          FAILED: ${{ needs.summary.outputs.failed }}
+          SKIPPED: ${{ needs.summary.outputs.skipped }}
         run: |
           set -euo pipefail
 
-          passed="${{ needs.summary.outputs.passed }}"
-          failed="${{ needs.summary.outputs.failed }}"
-          skipped="${{ needs.summary.outputs.skipped }}"
+          passed="${PASSED:-0}"
+          failed="${FAILED:-0}"
+          skipped="${SKIPPED:-0}"
 
-          if [[ -z "$passed" ]]; then passed="0"; fi
-          if [[ -z "$failed" ]]; then failed="0"; fi
-          if [[ -z "$skipped" ]]; then skipped="0"; fi
+          for count in "$passed" "$failed" "$skipped"; do
+            if [[ ! "$count" =~ ^[0-9]+$ ]]; then
+              echo "Unexpected non-numeric test count: '$count'" >&2
+              exit 1
+            fi
+          done
 
           if [[ "$failed" != "0" ]]; then
             color="red"
