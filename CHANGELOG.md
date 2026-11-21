@@ -1,3 +1,5 @@
+# Changelog
+
 ## v2.4.0 (09.08.2026)
 
 - Added optional repository-owned `before-compose-hook` and `after-health-hook` lifecycle scripts around Compose startup and built-in health checks.
