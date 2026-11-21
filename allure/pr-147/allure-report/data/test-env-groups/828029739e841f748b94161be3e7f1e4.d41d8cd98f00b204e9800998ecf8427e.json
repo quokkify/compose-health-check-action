@@ -1,0 +1,1 @@
+{"id":"828029739e841f748b94161be3e7f1e4.d41d8cd98f00b204e9800998ecf8427e","fullName":"lifecycle_runner.bats::docker-command mode does not pass ignored profiles to hooks","name":"docker-command mode does not pass ignored profiles to hooks","status":"passed","testResultsByEnv":{"tests-unit-lifecycle-runner-bats":"3760e06cfde791f53d169c1d089cca03"}}
