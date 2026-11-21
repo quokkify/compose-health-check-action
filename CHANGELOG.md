@@ -1,5 +1,21 @@
 # Changelog
 
+## [2.4.1](https://github.com/quokkify/compose-health-check-action/compare/v2.4.0...v2.4.1) (2026-11-21)
+
+
+### 🐛 Bug Fixes
+
+* stop container output from injecting workflow commands ([#140](https://github.com/quokkify/compose-health-check-action/issues/140)) ([b6ae87a](https://github.com/quokkify/compose-health-check-action/commit/b6ae87a2d57f0f3baa542f5752dd272410010ca7))
+
+
+### 📦 Dependencies
+
+* **docker-compose:** update busybox:1.38 docker digest to a46257e ([#144](https://github.com/quokkify/compose-health-check-action/issues/144)) ([24b279c](https://github.com/quokkify/compose-health-check-action/commit/24b279cd10000ca6b43f05e0c4cd471e56949691))
+* **github-actions:** update actions/download-artifact digest to 9000827 ([#114](https://github.com/quokkify/compose-health-check-action/issues/114)) ([421ca28](https://github.com/quokkify/compose-health-check-action/commit/421ca28285d46e6cfd5380f1bc55f2289d354876))
+* **github-actions:** update actions/upload-artifact digest to cf430e0 ([#115](https://github.com/quokkify/compose-health-check-action/issues/115)) ([f1b7db9](https://github.com/quokkify/compose-health-check-action/commit/f1b7db9d88241c6ee96496d2fd64f4677082707d))
+* **github-actions:** update bats-core/bats-action action to v4.1.0 ([#139](https://github.com/quokkify/compose-health-check-action/issues/139)) ([829f3db](https://github.com/quokkify/compose-health-check-action/commit/829f3db45ce76d31a683fd5f6b26211d3d6b8097))
+* **github-actions:** update dorny/test-reporter digest to d1b5dff ([#117](https://github.com/quokkify/compose-health-check-action/issues/117)) ([e6a4633](https://github.com/quokkify/compose-health-check-action/commit/e6a4633ab921bb7b70799a8ffdf17ca7bb2ac8f1))
+
 ## v2.4.0 (09.08.2026)
 
 - Added optional repository-owned `before-compose-hook` and `after-health-hook` lifecycle scripts around Compose startup and built-in health checks.
