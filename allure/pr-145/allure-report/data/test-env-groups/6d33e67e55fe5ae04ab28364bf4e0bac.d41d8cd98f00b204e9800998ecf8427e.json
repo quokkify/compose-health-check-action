@@ -1,0 +1,1 @@
+{"id":"6d33e67e55fe5ae04ab28364bf4e0bac.d41d8cd98f00b204e9800998ecf8427e","fullName":"project_name.bats::auto-apply false does not write COMPOSE_PROJECT_NAME env (docker-command)","name":"auto-apply false does not write COMPOSE_PROJECT_NAME env (docker-command)","status":"passed","testResultsByEnv":{"tests-v2-project-name-bats":"9acd6a974d204bc22e90e9d3ce52e695"}}
