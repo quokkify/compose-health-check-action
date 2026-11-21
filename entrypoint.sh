@@ -677,7 +677,7 @@ print_unhealthy_services_details() {
 
   echo
   echo "Unhealthy services:"
-  local item svc cid status raw_json line
+  local item svc cid status raw_json
 
   for item in "${DOCKER_HEALTH_UNHEALTHY_TARGETS[@]}"; do
     svc="${item%%|*}"
@@ -702,26 +702,20 @@ print_unhealthy_services_details() {
     if command -v jq >/dev/null 2>&1; then
       echo "$raw_json" |
         jq -r '.[-'"$DOCKER_HEALTH_LOG_LINES"':] | .[].Output' |
-        while IFS= read -r line; do
-          [[ -z "$line" ]] && continue
-          printf '      %s\n' "$line"
-        done
+        grep -v '^$' |
+        emit_untrusted '      ' || true
     else
       echo "$raw_json" |
         sed -n 's/.*"Output":[[:space:]]*"\(.*\)".*/\1/p' |
         tail -n "$DOCKER_HEALTH_LOG_LINES" |
-        while IFS= read -r line; do
-          [[ -z "$line" ]] && continue
-          printf '      %s\n' "$line"
-        done
+        grep -v '^$' |
+        emit_untrusted '      ' || true
     fi
 
     echo
     echo "    Last ${DOCKER_HEALTH_LOG_LINES} container log lines:"
     docker logs --tail "$DOCKER_HEALTH_LOG_LINES" "$cid" 2>&1 |
-      while IFS= read -r line; do
-        printf '      %s\n' "$line"
-      done
+      emit_untrusted '      ' || true
     echo
   done
 }
@@ -756,7 +750,7 @@ execute() {
   local compose_rc=0 tmp_out
   tmp_out="$(mktemp)"
 
-  if ! "${cmd_args[@]}" 2>&1 | tee "$tmp_out"; then
+  if ! "${cmd_args[@]}" 2>&1 | tee "$tmp_out" | emit_untrusted; then
     compose_rc=${PIPESTATUS[0]:-1}
 
     error "Docker compose failed to start (exit $compose_rc)."
@@ -780,13 +774,13 @@ execute() {
     echo
     info "--- docker compose output (last 25 lines) ---"
     echo "─────────────────────────────────────────────────────────────"
-    tail -n 25 "$tmp_out" || true
+    { tail -n 25 "$tmp_out" || true; } | emit_untrusted
     rm -f "$tmp_out"
 
     echo
     info "--- docker compose ps --all (current project) ---"
     echo "─────────────────────────────────────────────────────────────"
-    "${compose_base_cmd[@]}" ps --all 2>/dev/null || true
+    { "${compose_base_cmd[@]}" ps --all 2>/dev/null || true; } | emit_untrusted
     echo
     echo "─────────────────────────────────────────────────────────────"
 

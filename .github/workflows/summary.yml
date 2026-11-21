@@ -5,15 +5,16 @@ on:
     types:
       - completed
 
-permissions:
-  contents: write
-  actions: read
-  checks: write
+permissions: {}
 
 jobs:
   summary:
     name: "Report summary"
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+      checks: write
 
     outputs:
       passed: ${{ steps.report.outputs.passed }}
@@ -48,6 +49,8 @@ jobs:
     needs: summary
     if: github.event.workflow_run.event == 'push' && github.event.workflow_run.head_branch == 'main'
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: 🔨Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -55,16 +58,23 @@ jobs:
           persist-credentials: false
 
       - name: Build Shields endpoint JSON (passed/failed/skipped)
+        env:
+          PASSED: ${{ needs.summary.outputs.passed }}
+          FAILED: ${{ needs.summary.outputs.failed }}
+          SKIPPED: ${{ needs.summary.outputs.skipped }}
         run: |
           set -euo pipefail
 
-          passed="${{ needs.summary.outputs.passed }}"
-          failed="${{ needs.summary.outputs.failed }}"
-          skipped="${{ needs.summary.outputs.skipped }}"
+          passed="${PASSED:-0}"
+          failed="${FAILED:-0}"
+          skipped="${SKIPPED:-0}"
 
-          if [[ -z "$passed" ]]; then passed="0"; fi
-          if [[ -z "$failed" ]]; then failed="0"; fi
-          if [[ -z "$skipped" ]]; then skipped="0"; fi
+          for count in "$passed" "$failed" "$skipped"; do
+            if [[ ! "$count" =~ ^[0-9]+$ ]]; then
+              echo "Unexpected non-numeric test count: '$count'" >&2
+              exit 1
+            fi
+          done
 
           if [[ "$failed" != "0" ]]; then
             color="red"
