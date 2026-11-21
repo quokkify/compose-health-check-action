@@ -2,19 +2,43 @@
 
 ## [2.4.1](https://github.com/quokkify/compose-health-check-action/compare/v2.4.0...v2.4.1) (2026-11-21)
 
+<!-- project-toolkit:release-notes v2 -->
+**At a glance:** 1 fixed · 59 internal
 
-### 🐛 Bug Fixes
+### 🐛 Fixed
 
-* stop container output from injecting workflow commands ([#140](https://github.com/quokkify/compose-health-check-action/issues/140)) ([b6ae87a](https://github.com/quokkify/compose-health-check-action/commit/b6ae87a2d57f0f3baa542f5752dd272410010ca7))
+- stop container output from injecting workflow commands — Container output (logs, health probe output, Compose output) shown in the job log can no longer inject GitHub workflow commands such as `::add-mask::` or `::error::`; it is now printed inside `::stop-commands::` guards. ([#140](https://github.com/quokkify/compose-health-check-action/pull/140))
 
+<details><summary>Internal changes (59 PRs)</summary>
 
-### 📦 Dependencies
+**Dependencies**
 
-* **docker-compose:** update busybox:1.38 docker digest to a46257e ([#144](https://github.com/quokkify/compose-health-check-action/issues/144)) ([24b279c](https://github.com/quokkify/compose-health-check-action/commit/24b279cd10000ca6b43f05e0c4cd471e56949691))
-* **github-actions:** update actions/download-artifact digest to 9000827 ([#114](https://github.com/quokkify/compose-health-check-action/issues/114)) ([421ca28](https://github.com/quokkify/compose-health-check-action/commit/421ca28285d46e6cfd5380f1bc55f2289d354876))
-* **github-actions:** update actions/upload-artifact digest to cf430e0 ([#115](https://github.com/quokkify/compose-health-check-action/issues/115)) ([f1b7db9](https://github.com/quokkify/compose-health-check-action/commit/f1b7db9d88241c6ee96496d2fd64f4677082707d))
-* **github-actions:** update bats-core/bats-action action to v4.1.0 ([#139](https://github.com/quokkify/compose-health-check-action/issues/139)) ([829f3db](https://github.com/quokkify/compose-health-check-action/commit/829f3db45ce76d31a683fd5f6b26211d3d6b8097))
-* **github-actions:** update dorny/test-reporter digest to d1b5dff ([#117](https://github.com/quokkify/compose-health-check-action/issues/117)) ([e6a4633](https://github.com/quokkify/compose-health-check-action/commit/e6a4633ab921bb7b70799a8ffdf17ca7bb2ac8f1))
+- actions/download-artifact 3e5f45b → 9000827 ([#114](https://github.com/quokkify/compose-health-check-action/pull/114))
+- actions/upload-artifact 043fb46 → cf430e0 ([#115](https://github.com/quokkify/compose-health-check-action/pull/115))
+- bats-core/bats-action 4.0.0 → 4.1.0 ([#84](https://github.com/quokkify/compose-health-check-action/pull/84), [#139](https://github.com/quokkify/compose-health-check-action/pull/139))
+- busybox dc2d74b → a46257e ([#104](https://github.com/quokkify/compose-health-check-action/pull/104), [#144](https://github.com/quokkify/compose-health-check-action/pull/144))
+- dorny/test-reporter a43b3a5 → d1b5dff ([#117](https://github.com/quokkify/compose-health-check-action/pull/117))
+- peaceiris/actions-gh-pages 329bcc8 → 84c30a8 ([#86](https://github.com/quokkify/compose-health-check-action/pull/86))
+
+**Maintenance**
+
+- add the Changelog title Release Please expects ([#145](https://github.com/quokkify/compose-health-check-action/pull/145))
+- **ci-kit:** hand off base, security, release, allure, renovate to modules ([#131](https://github.com/quokkify/compose-health-check-action/pull/131))
+- **ci-kit:** hand off validate to core module ([#120](https://github.com/quokkify/compose-health-check-action/pull/120))
+- **ci-kit:** prepare for the legacy template exit ([#130](https://github.com/quokkify/compose-health-check-action/pull/130))
+- **deps:** pin busybox docker tag to dc2d74b ([#98](https://github.com/quokkify/compose-health-check-action/pull/98))
+- drop the manual snapshot heading from the changelog ([#143](https://github.com/quokkify/compose-health-check-action/pull/143))
+- keep Prettier off the generated changelog ([#146](https://github.com/quokkify/compose-health-check-action/pull/146))
+- **renovate:** adopt the supply-chain hardening and stack grouping presets ([#141](https://github.com/quokkify/compose-health-check-action/pull/141))
+- restrict tests and lint workflow token to contents: read ([#135](https://github.com/quokkify/compose-health-check-action/pull/135))
+- **template:** resolve Copier README conflict ([#82](https://github.com/quokkify/compose-health-check-action/pull/82))
+- **template:** update project-toolkit to v2.12.1 ([#83](https://github.com/quokkify/compose-health-check-action/pull/83))
+- **template:** update shared project template (37 PRs, [#88](https://github.com/quokkify/compose-health-check-action/pull/88)–[#138](https://github.com/quokkify/compose-health-check-action/pull/138))
+- **template:** update shared project template to ci-kit v3.0.0 ([#109](https://github.com/quokkify/compose-health-check-action/pull/109))
+- **template:** update shared project template to v2.17.0 ([#89](https://github.com/quokkify/compose-health-check-action/pull/89))
+- update project-toolkit to v2.12.4 ([#87](https://github.com/quokkify/compose-health-check-action/pull/87))
+
+</details>
 
 ## v2.4.0 (09.08.2026)
 
