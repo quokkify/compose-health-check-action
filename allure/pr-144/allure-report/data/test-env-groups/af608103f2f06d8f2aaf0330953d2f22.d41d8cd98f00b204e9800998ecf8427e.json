@@ -1,0 +1,1 @@
+{"id":"af608103f2f06d8f2aaf0330953d2f22.d41d8cd98f00b204e9800998ecf8427e","fullName":"compose_services.bats::scaled compose up parses service after --scale operand","name":"scaled compose up parses service after --scale operand","status":"passed","testResultsByEnv":{"tests-unit-compose-services-bats":"86200ccaa17d5e5d20c9a166a315cd2b"}}

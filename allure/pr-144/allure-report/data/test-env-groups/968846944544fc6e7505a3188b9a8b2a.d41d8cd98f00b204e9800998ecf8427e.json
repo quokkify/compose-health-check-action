@@ -1,0 +1,1 @@
+{"id":"968846944544fc6e7505a3188b9a8b2a.d41d8cd98f00b204e9800998ecf8427e","fullName":"action_inputs.bats::composite action does not interpolate inputs inside run source","name":"composite action does not interpolate inputs inside run source","status":"passed","testResultsByEnv":{"tests-unit-action-inputs-bats":"59e8a727d11ddcf317a30ddea7001786"}}
