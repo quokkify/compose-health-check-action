@@ -1,0 +1,1 @@
+{"id":"ea0cbddef28f90b0a50c5142fb5e6365.d41d8cd98f00b204e9800998ecf8427e","fullName":"untrusted_output.bats::regression guard: container logs and probe output in diagnostics are guarded","name":"regression guard: container logs and probe output in diagnostics are guarded","status":"passed","testResultsByEnv":{"tests-unit-untrusted-output-bats":"8071ab826ea0ca356e199c6aa759e1bc"}}
